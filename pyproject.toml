@@ -7,8 +7,9 @@ name = "retrigen"
 version = "0.0.0"
 authors = [
   { name = "Jesper Alkestrup", email = "jalkestrup@gmail.com" },
+  { name = "Kenneth Enevoldsen", email = "Kenneth.enevoldsen@cas.au.dk" }
 ]
-description = "retrigen"
+description = "A package for automatically generating datasets for training or evaluating retrieval models"
 classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: MacOS :: MacOS X",
