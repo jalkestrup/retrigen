@@ -2,6 +2,21 @@
 
 
 
+## v0.1.1 (2024-04-23)
+
+### Fix
+
+* fix: docs, rm nojerkyl file ([`784780e`](https://github.com/jalkestrup/retrigen/commit/784780eedb4ed2167ace26a459b0c79615d776bb))
+
+* fix: docs, added nojekyll to troubleshoot ([`bda7195`](https://github.com/jalkestrup/retrigen/commit/bda7195c6311e02b8966ac81abaf419fffe8d542))
+
+* fix: rm static type check ([`82d6f0f`](https://github.com/jalkestrup/retrigen/commit/82d6f0f68e67eb12713ab579280adf12252a3553))
+
+### Unknown
+
+* Merge remote-tracking branch &#39;origin/main&#39; ([`1fbe024`](https://github.com/jalkestrup/retrigen/commit/1fbe02427edcc03cfa1cc68ae32bacef5ed347e0))
+
+
 ## v0.1.0 (2024-04-23)
 
 ### Feature
