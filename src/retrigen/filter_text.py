@@ -5,9 +5,7 @@ import textdescriptives as td
 from langchain_core.documents import Document
 
 
-def filter_text_by_td(
-    text_list: list[str | Document], filter_type: bool = True
-) -> list[Document]:
+def filter_text_by_td(text_list: list[str | Document], filter_type: bool = True) -> list[Document]:
     """
     Filter documents by the textdescriptives quality check, converts strings to langchain Docs
     Args:
@@ -21,11 +19,7 @@ def filter_text_by_td(
     nlp.add_pipe("textdescriptives/quality")
 
     # Process the texts with SpaCy, handling both strings and Document objects
-    processed_docs = list(
-        nlp.pipe(
-            doc.page_content if isinstance(doc, Document) else doc for doc in text_list
-        )
-    )
+    processed_docs = list(nlp.pipe(doc.page_content if isinstance(doc, Document) else doc for doc in text_list))
 
     # Filter based on the quality check, merge with existing metadata
     filtered_docs = [
