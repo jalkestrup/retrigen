@@ -1,6 +1,4 @@
 from typing import List, Dict, Union, Tuple
-import textdescriptives as td  # noqa
-import spacy
 import uuid
 from langchain_core.documents import Document
 from tqdm import tqdm
@@ -11,6 +9,8 @@ from tqdm import tqdm
 from openai import OpenAI
 import chromadb
 from chromadb.utils import embedding_functions
+
+from .filter_text import filter_text_by_td
 
 
 def q_eval_system_prompt():
