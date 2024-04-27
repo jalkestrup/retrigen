@@ -45,7 +45,6 @@ nav:
       - Installation: installation.md
       - Tutorials:
           - tutorials/usage.ipynb
-      - FAQ: faq.md
   - API References:
       - api/docs_example.md
 
