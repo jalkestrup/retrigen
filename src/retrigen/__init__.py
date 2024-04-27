@@ -13,9 +13,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 
 
-def filter_text_by_td(
-    text_list: List[Union[str, Document]], filter_type: bool = True
-) -> List[Document]:
+def filter_text_by_td(text_list: List[Union[str, Document]], filter_type: bool = True) -> List[Document]:
     """
     Filter documents by the textdescriptives quality check, converts strings to langchain Docs
     Args:
@@ -29,11 +27,7 @@ def filter_text_by_td(
     quality_pipe = nlp.add_pipe("textdescriptives/quality")
 
     # Process the texts with SpaCy, handling both strings and Document objects
-    processed_docs = list(
-        nlp.pipe(
-            doc.page_content if isinstance(doc, Document) else doc for doc in text_list
-        )
-    )
+    processed_docs = list(nlp.pipe(doc.page_content if isinstance(doc, Document) else doc for doc in text_list))
 
     # Filter based on the quality check, merge with existing metadata
     filtered_docs = [
@@ -114,27 +108,19 @@ def filter_text_by_llm(text_list: List[Union[str, Document]]) -> List[Document]:
     oai_client = OpenAI()
     for text_item in tqdm(text_list, desc="Evaluating texts"):
         # Extract text content from Document objects or use string directly
-        text_content = (
-            text_item.page_content if isinstance(text_item, Document) else text_item
-        )
+        text_content = text_item.page_content if isinstance(text_item, Document) else text_item
 
         user_prompt = q_eval_user_prompt(text_content)
         response = json_api_call(oai_client, system_prompt, user_prompt)
         if response:
             if response.get("llm_score") == 1:
                 # Preserve original Document object or create a new one if the input was a string
-                passed_text_doc = (
-                    text_item
-                    if isinstance(text_item, Document)
-                    else Document(page_content=text_content)
-                )
+                passed_text_doc = text_item if isinstance(text_item, Document) else Document(page_content=text_content)
                 texts_passed_llm.append(passed_text_doc)
             else:
                 continue
         else:
-            logging.error(
-                f"Failed to evaluate the following text due to an earlier error:\n{text_content}"
-            )
+            logging.error(f"Failed to evaluate the following text due to an earlier error:\n{text_content}")
 
     return texts_passed_llm
 
@@ -157,9 +143,7 @@ def generate_question_template(text: str, num_q: int = 1) -> str:
     return question_tmlp.format(context_str=text, num_questions_per_chunk=num_q)
 
 
-def question_api_call(
-    oai_client, user_prompt: str, oai_model: str = "gpt-4-0125-preview"
-) -> Dict[str, Any]:
+def question_api_call(oai_client, user_prompt: str, oai_model: str = "gpt-4-0125-preview") -> Dict[str, Any]:
     """Perform the API call to evaluate the text."""
     try:
         completion = oai_client.chat.completions.create(
@@ -247,11 +231,7 @@ class QuestionContextManager:
         - min_length (int): The minimum character length for questions to be kept. Default to 20.
         - max_length (int): The maximum character length for questions to be kept. Default to 150.
         """
-        questions_to_remove = [
-            q_id
-            for q_id, question in self.questions.items()
-            if not (min_length <= len(question.page_content) <= max_length)
-        ]
+        questions_to_remove = [q_id for q_id, question in self.questions.items() if not (min_length <= len(question.page_content) <= max_length)]
 
         # Remove the questions and question_context pairs
         for q_id in questions_to_remove:
@@ -260,12 +240,7 @@ class QuestionContextManager:
 
         # Identify contexts that are no longer linked to any questions
         contexts_to_remove = {
-            context_id
-            for context_id in self.contexts
-            if all(
-                context_id not in contexts
-                for contexts in self.question_context_id_pairs.values()
-            )
+            context_id for context_id in self.contexts if all(context_id not in contexts for contexts in self.question_context_id_pairs.values())
         }
 
         # Remove these contexts
@@ -286,9 +261,7 @@ class QuestionContextManager:
                 # Create a set from the existing IDs for quick lookup
                 existing_ids_set = set(self.question_context_id_pairs[q_id])
                 # Filter out duplicates while preserving order
-                filtered_c_id_list = [
-                    c_id for c_id in c_id_list if c_id not in existing_ids_set
-                ]
+                filtered_c_id_list = [c_id for c_id in c_id_list if c_id not in existing_ids_set]
                 # Extend the existing list with the filtered, non-duplicate IDs
                 self.question_context_id_pairs[q_id].extend(filtered_c_id_list)
             else:
@@ -323,9 +296,7 @@ def generate_questions(
         if isinstance(context, str):
             context = Document(page_content=context, metadata={})
 
-        question_prompt = generate_question_template(
-            context.page_content, num_questions
-        )
+        question_prompt = generate_question_template(context.page_content, num_questions)
         response = question_api_call(oai_client, question_prompt, oai_model)
         try:
             questions = response["Q"]
@@ -358,9 +329,7 @@ def initialize_chroma_collection(
     # Create a new collection with the specified embedding function
     db_collection = client.create_collection(
         name=collection_name,
-        embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
-            embedding_model, normalize_embeddings=True
-        ),
+        embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(embedding_model, normalize_embeddings=True),
         metadata={"hnsw:space": similarity_metric},
     )
     return db_collection
@@ -381,24 +350,16 @@ def add_documents_to_chroma(
     # If values are Documents
     if isinstance(list(id_document_pairs.values())[0], Document):
         context_documents = list(id_document_pairs.values())
-        context_texts = [
-            f"{document_prepend} {doc.page_content}" for doc in context_documents
-        ]
+        context_texts = [f"{document_prepend} {doc.page_content}" for doc in context_documents]
         context_ids = list(id_document_pairs.keys())
-        context_metadatas = [
-            {"type": "context", **doc.metadata} for doc in context_documents
-        ]
+        context_metadatas = [{"type": "context", **doc.metadata} for doc in context_documents]
     # If values are Strings
     else:
-        context_texts = [
-            f"{document_prepend} {doc}" for doc in id_document_pairs.values()
-        ]
+        context_texts = [f"{document_prepend} {doc}" for doc in id_document_pairs.values()]
         context_ids = list(id_document_pairs.keys())
         context_metadatas = [{"type": "context"} for _ in context_texts]
 
-    collection.add(
-        documents=context_texts, ids=context_ids, metadatas=context_metadatas
-    )
+    collection.add(documents=context_texts, ids=context_ids, metadatas=context_metadatas)
 
 
 def filter_context_candidates(
@@ -423,14 +384,9 @@ def filter_context_candidates(
 
     query_filtered = {}
 
-    question_texts = [
-        f"{question_prepend} {doc.page_content}"
-        for doc in question_context_object.questions.values()
-    ]
+    question_texts = [f"{question_prepend} {doc.page_content}" for doc in question_context_object.questions.values()]
 
-    batch_query_result = chroma_db_collection.query(
-        query_texts=question_texts, where={"type": "context"}, n_results=top_k
-    )
+    batch_query_result = chroma_db_collection.query(query_texts=question_texts, where={"type": "context"}, n_results=top_k)
 
     for idx, (q_id, q_document) in enumerate(question_context_object.questions.items()):
         query_id_list = batch_query_result["ids"][idx]
@@ -451,9 +407,7 @@ def filter_context_candidates(
                 context_ids.append(ground_truth_id)
 
             # Include lower-ranked items within the distance threshold
-            for id_, distance in zip(
-                query_id_list[gt_index + 1 :], query_distances_list[gt_index + 1 :]
-            ):
+            for id_, distance in zip(query_id_list[gt_index + 1 :], query_distances_list[gt_index + 1 :]):
                 if abs(distance - gt_distance) <= dist_threshold:
                     context_ids.append(id_)
         else:
@@ -494,9 +448,7 @@ def c_eval_user_prompt(question: str, context: str) -> str:
     return qa_egnet_tmlp.format(insert_question=question, insert_context=context)
 
 
-def context_question_llm_assesment(
-    context_candidates, question_context_object: QuestionContextManager
-) -> Dict[str, List[str]]:
+def context_question_llm_assesment(context_candidates, question_context_object: QuestionContextManager) -> Dict[str, List[str]]:
     """
     Iterates over the context candidate texts and uses a LLM call to assess whether the context matches the corresponding question
     Returns:
@@ -510,9 +462,7 @@ def context_question_llm_assesment(
         question_text = question_context_object.questions[q_id].page_content
         for c_id in c_id_list:
             context_text = question_context_object.contexts[c_id].page_content
-            user_prompt = c_eval_user_prompt(
-                question=question_text, context=context_text
-            )
+            user_prompt = c_eval_user_prompt(question=question_text, context=context_text)
             response = json_api_call(oai_client, system_prompt, user_prompt)
             if response:
                 if response["context_score"] == 1:
@@ -523,7 +473,5 @@ def context_question_llm_assesment(
                 else:
                     continue
             else:
-                logging.error(
-                    f"Failed to evaluate below text due to an earlier error. \n"
-                )
+                logging.error(f"Failed to evaluate below text due to an earlier error. \n")
     return question_context_matches
